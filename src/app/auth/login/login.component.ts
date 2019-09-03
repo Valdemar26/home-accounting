@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Params, Router } from '@angular/router';
 
 import { UsersService } from '../../shared/services/users.service';
 import { AuthService } from '../../shared/services/auth.service';
@@ -21,11 +21,22 @@ export class LoginComponent implements OnInit {
   constructor(
     private usersService: UsersService,
     private authService: AuthService,
-    private router: Router
+    private router: Router,
+    private route: ActivatedRoute
   ) { }
 
   ngOnInit() {
     this.message = new Message('danger', '');
+
+    this.route.queryParams
+      .subscribe((params: Params) => {
+        if (params['nowCanLogin']) {
+          this.showMessage({
+            text: 'Тепер ви можете зайти в систему.',
+            type: 'success'
+          });
+        }
+      });
 
     this.form = new FormGroup({
       'email': new FormControl(null, [Validators.required, Validators.email]),
@@ -33,8 +44,8 @@ export class LoginComponent implements OnInit {
     });
   }
 
-  private showMessage(text: string, type: string = 'danger') {
-    this.message = new Message(type, text);
+  private showMessage(message: Message) {
+    this.message = message;
 
     window.setTimeout(() => {
       this.message.text = '';
@@ -53,10 +64,16 @@ export class LoginComponent implements OnInit {
             this.authService.login();
             // this.router.navigate([]);
           } else {
-            this.showMessage('Password incorrect');
+            this.showMessage({
+              text: 'Password incorrect',
+              type: 'danger'
+            });
           }
         } else {
-          this.showMessage('No user');
+          this.showMessage({
+            text: 'No user',
+            type: 'danger'
+          });
         }
       });
   }
